@@ -78,7 +78,7 @@ public class BeerServiceImpl implements BeerService {
     public Mono<Void> deleteById(Integer beerId) {
 
         return beerRepository.existsById(beerId)
-            .doOnError(throwable -> log.error("Error: " + throwable.getMessage()))
+            .onErrorResume(throwable -> Mono.error(new RuntimeException(throwable.getMessage())))
             .flatMap(exists -> {
                 if (Boolean.TRUE.equals(exists)) {
                     return beerRepository.deleteById(beerId);
