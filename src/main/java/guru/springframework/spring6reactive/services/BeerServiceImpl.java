@@ -83,7 +83,7 @@ public class BeerServiceImpl implements BeerService {
                 if (Boolean.TRUE.equals(exists)) {
                     return beerRepository.deleteById(beerId);
                 } else {
-                    return Mono.error(new NotFoundException("Element not found!"));
+                    return Mono.error(new NotFoundException("Element not found"));
                 }
             });
     }

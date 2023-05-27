@@ -1,5 +1,6 @@
 package guru.springframework.spring6reactive.controllers;
 
+import guru.springframework.spring6reactive.domain.Beer;
 import guru.springframework.spring6reactive.model.BeerDTO;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,19 @@ class BeerControllerTest {
     }
 
     @Test
+    @Order(3)
+    void createNewBeer_badRequest() {
+        Beer beer = getBeer();
+        beer.setBeerName("");
+        webTestClient.post()
+            .uri(BeerController.BEER_PATH)
+            .body(Mono.just(beer), BeerDTO.class)
+            .header("Content-Type", "application/json")
+            .exchange()
+            .expectStatus().isBadRequest();
+    }
+
+    @Test
     @Order(4)
     void updateBeer() {
         webTestClient.put()
@@ -93,7 +107,7 @@ class BeerControllerTest {
     @Order(999)
     void deleteById_notFound() {
         webTestClient.delete()
-            .uri(BeerController.BEER_PATH + BeerController.BEER_PATH_ID, 2)
+            .uri(BeerController.BEER_PATH + BeerController.BEER_PATH_ID, 666)
             .exchange()
             .expectStatus().isNotFound();
     }

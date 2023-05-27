@@ -42,9 +42,20 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         Map<String, Object> errorPropertiesMap = getErrorAttributes(request,
             ErrorAttributeOptions.defaults());
 
-        return ServerResponse.status(HttpStatus.NOT_FOUND)
+        return ServerResponse.status(determineHttpStatus(errorPropertiesMap))
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(errorPropertiesMap));
+    }
+
+    private static HttpStatus determineHttpStatus(Map<String, Object> errorPropertiesMap) {
+        HttpStatus httpStatus;
+
+        if (errorPropertiesMap.get("status").equals(HttpStatus.BAD_REQUEST)) {
+            httpStatus = HttpStatus.BAD_REQUEST;
+        } else {
+            httpStatus = HttpStatus.NOT_FOUND;
+        }
+        return httpStatus;
     }
 
 }

@@ -66,12 +66,12 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Mono<Void> deleteById(Integer customerId) {
         return customerRepository.existsById(customerId)
-            .doOnError(throwable -> log.error("Error: " + throwable.getMessage()))
+            .onErrorResume(throwable -> Mono.error(new RuntimeException(throwable.getMessage())))
             .flatMap(exists -> {
                 if (Boolean.TRUE.equals(exists)) {
                     return customerRepository.deleteById(customerId);
                 } else {
-                    return Mono.error(new NotFoundException("Element not found!"));
+                    return Mono.error(new NotFoundException("Element not found"));
                 }
             });
     }
