@@ -1,7 +1,7 @@
 package guru.springframework.spring6reactive.mapper;
 
-import guru.springframework.spring6reactive.model.CustomerDTO;
 import guru.springframework.spring6reactive.domain.Customer;
+import guru.springframework.spring6reactive.model.CustomerDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

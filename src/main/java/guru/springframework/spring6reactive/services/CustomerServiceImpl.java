@@ -1,14 +1,17 @@
 package guru.springframework.spring6reactive.services;
 
+import guru.springframework.spring6reactive.exception.NotFoundException;
 import guru.springframework.spring6reactive.mapper.CustomerMapper;
 import guru.springframework.spring6reactive.model.CustomerDTO;
 import guru.springframework.spring6reactive.repositories.CustomerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -62,6 +65,14 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Mono<Void> deleteById(Integer customerId) {
-        return customerRepository.deleteById(customerId);
+        return customerRepository.existsById(customerId)
+            .doOnError(throwable -> log.error("Error: " + throwable.getMessage()))
+            .flatMap(exists -> {
+                if (Boolean.TRUE.equals(exists)) {
+                    return customerRepository.deleteById(customerId);
+                } else {
+                    return Mono.error(new NotFoundException("Element not found!"));
+                }
+            });
     }
 }

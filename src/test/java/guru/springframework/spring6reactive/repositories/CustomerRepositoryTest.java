@@ -4,15 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.springframework.spring6reactive.config.DatabaseConfig;
 import guru.springframework.spring6reactive.domain.Customer;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.context.annotation.Import;
+import reactor.core.publisher.Mono;
 
 @DataR2dbcTest
 @Import(DatabaseConfig.class)
-class CustomerRepositoryTest {
+public class CustomerRepositoryTest {
 
     @Autowired
     CustomerRepository customerRepository;
@@ -26,15 +28,22 @@ class CustomerRepositoryTest {
 
     @Test
     void createJson() throws JsonProcessingException {
-        System.out.println(objectMapper.writeValueAsString(getCustomer()));
+        String json = objectMapper.writeValueAsString(getCustomer());
+        System.out.println(json);
+        Assertions.assertThat(json).isNotNull();
     }
 
     @Test
     void saveNewCustomer() {
-        customerRepository.save(getCustomer()).subscribe(customer -> System.out.println(customer.toString()));
+        Mono<Customer> customerMono = customerRepository.save(getCustomer()).single();
+        customerMono.subscribe(customer -> {
+            Assertions.assertThat(customer).isNotNull();
+            System.out.println(customer);
+        });
+
     }
 
-    Customer getCustomer() {
+    public static Customer getCustomer() {
         return Customer.builder()
             .customerName("John Doe")
             .email("john@doe.com")

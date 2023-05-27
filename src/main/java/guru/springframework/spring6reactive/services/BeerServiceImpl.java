@@ -1,14 +1,17 @@
 package guru.springframework.spring6reactive.services;
 
+import guru.springframework.spring6reactive.exception.NotFoundException;
 import guru.springframework.spring6reactive.mapper.BeerMapper;
 import guru.springframework.spring6reactive.model.BeerDTO;
 import guru.springframework.spring6reactive.repositories.BeerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class BeerServiceImpl implements BeerService {
@@ -73,6 +76,15 @@ public class BeerServiceImpl implements BeerService {
 
     @Override
     public Mono<Void> deleteById(Integer beerId) {
-        return beerRepository.deleteById(beerId);
+
+        return beerRepository.existsById(beerId)
+            .doOnError(throwable -> log.error("Error: " + throwable.getMessage()))
+            .flatMap(exists -> {
+                if (Boolean.TRUE.equals(exists)) {
+                    return beerRepository.deleteById(beerId);
+                } else {
+                    return Mono.error(new NotFoundException("Element not found!"));
+                }
+            });
     }
 }
