@@ -11,6 +11,8 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static guru.springframework.spring6reactive.services.BeerServiceImpl.NOT_FOUND;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -21,12 +23,16 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Flux<CustomerDTO> listCustomers() {
-        return customerRepository.findAll().map(customerMapper::customerToCustomerDto);
+        return customerRepository.findAll()
+            .switchIfEmpty(Mono.error(new NotFoundException(NOT_FOUND)))
+            .map(customerMapper::customerToCustomerDto);
     }
 
     @Override
     public Mono<CustomerDTO> getCustomerById(Integer customerId) {
-        return customerRepository.findById(customerId).map(customerMapper::customerToCustomerDto);
+        return customerRepository.findById(customerId)
+            .switchIfEmpty(Mono.error(new NotFoundException(NOT_FOUND)))
+            .map(customerMapper::customerToCustomerDto);
     }
 
     @Override
@@ -38,6 +44,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Mono<CustomerDTO> updateCustomer(Integer customerId, CustomerDTO customerDTO) {
         return customerRepository.findById(customerId)
+            .switchIfEmpty(Mono.error(new NotFoundException(NOT_FOUND)))
             .map(customerMapper::customerToCustomerDto)
             .flatMap(customerDTO1 -> {
                 customerDTO1.setCustomerName(customerDTO.getCustomerName());
@@ -51,6 +58,7 @@ public class CustomerServiceImpl implements CustomerService {
     public Mono<CustomerDTO> patchCustomer(Integer customerId, CustomerDTO customerDTO) {
         return customerRepository.findById(customerId)
             .map(customerMapper::customerToCustomerDto)
+            .switchIfEmpty(Mono.error(new NotFoundException(NOT_FOUND)))
             .flatMap(customerDTO1 -> {
                 if (StringUtils.hasText(customerDTO.getCustomerName())) {
                     customerDTO1.setCustomerName(customerDTO.getCustomerName());

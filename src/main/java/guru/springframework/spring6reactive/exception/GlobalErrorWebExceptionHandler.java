@@ -42,12 +42,12 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         Map<String, Object> errorPropertiesMap = getErrorAttributes(request,
             ErrorAttributeOptions.defaults());
 
-        return ServerResponse.status(determineHttpStatus(errorPropertiesMap))
+        return ServerResponse.status(getHttpStatus(errorPropertiesMap))
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(errorPropertiesMap));
     }
 
-    private static HttpStatus determineHttpStatus(Map<String, Object> errorPropertiesMap) {
+    private static HttpStatus getHttpStatus(Map<String, Object> errorPropertiesMap) {
         HttpStatus httpStatus;
 
         if (errorPropertiesMap.get("status").equals(HttpStatus.BAD_REQUEST)) {

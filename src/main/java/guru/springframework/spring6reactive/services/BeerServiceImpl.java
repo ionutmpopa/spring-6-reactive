@@ -16,28 +16,35 @@ import reactor.core.publisher.Mono;
 @Service
 public class BeerServiceImpl implements BeerService {
 
+    public static final String NOT_FOUND = "Element not found";
     private final BeerRepository beerRepository;
     private final BeerMapper beerMapper;
 
     @Override
     public Flux<BeerDTO> listBeers() {
-        return beerRepository.findAll().map(beerMapper::beerToBeerDto);
+        return beerRepository.findAll()
+            .switchIfEmpty(Mono.error(new NotFoundException(NOT_FOUND)))
+            .map(beerMapper::beerToBeerDto);
     }
 
     @Override
     public Mono<BeerDTO> getBeerById(Integer beerId) {
-        return beerRepository.findById(beerId).map(beerMapper::beerToBeerDto);
+        return beerRepository.findById(beerId)
+            .switchIfEmpty(Mono.error(new NotFoundException(NOT_FOUND)))
+            .map(beerMapper::beerToBeerDto);
     }
 
     @Override
     public Mono<BeerDTO> createNewBeer(BeerDTO beerDTO) {
-        return beerRepository.save(beerMapper.beerDtoToBeer(beerDTO)).map(beerMapper::beerToBeerDto);
+        return beerRepository.save(beerMapper.beerDtoToBeer(beerDTO))
+            .map(beerMapper::beerToBeerDto);
     }
 
     @Override
     public Mono<BeerDTO> updateBeer(Integer beerId, BeerDTO beerDTO) {
 
         return beerRepository.findById(beerId)
+            .switchIfEmpty(Mono.error(new NotFoundException(NOT_FOUND)))
             .map(beerMapper::beerToBeerDto)
             .flatMap(beerDTO1 -> {
                 beerDTO1.setBeerName(beerDTO.getBeerName());
@@ -53,6 +60,7 @@ public class BeerServiceImpl implements BeerService {
     public Mono<BeerDTO> patchBeer(Integer beerId, BeerDTO beerDTO) {
 
         return beerRepository.findById(beerId)
+            .switchIfEmpty(Mono.error(new NotFoundException(NOT_FOUND)))
             .map(beerMapper::beerToBeerDto)
             .flatMap(beerDTO1 -> {
                 if (StringUtils.hasText(beerDTO.getBeerName())) {
@@ -83,7 +91,7 @@ public class BeerServiceImpl implements BeerService {
                 if (Boolean.TRUE.equals(exists)) {
                     return beerRepository.deleteById(beerId);
                 } else {
-                    return Mono.error(new NotFoundException("Element not found"));
+                    return Mono.error(new NotFoundException(NOT_FOUND));
                 }
             });
     }

@@ -1,5 +1,6 @@
 package guru.springframework.spring6reactive.controllers;
 
+import guru.springframework.spring6reactive.domain.Customer;
 import guru.springframework.spring6reactive.model.CustomerDTO;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,14 @@ class CustomerControllerTest {
     }
 
     @Test
+    void getCustomerById_notFound() {
+        webTestClient.get()
+            .uri(CustomerController.CUSTOMER_PATH + CustomerController.CUSTOMER_PATH_ID, 999)
+            .exchange()
+            .expectStatus().isNotFound();
+    }
+
+    @Test
     @Order(3)
     void createNewCustomer() {
         webTestClient.post()
@@ -54,6 +63,18 @@ class CustomerControllerTest {
             .exchange()
             .expectStatus().isOk()
             .expectBody(CustomerDTO.class);
+    }
+
+    @Test
+    void createNewCustomer_badRequest() {
+        Customer customer = getCustomer();
+        customer.setCustomerName("");
+        webTestClient.post()
+            .uri(BeerController.BEER_PATH)
+            .body(Mono.just(customer), CustomerDTO.class)
+            .header("Content-Type", "application/json")
+            .exchange()
+            .expectStatus().isBadRequest();
     }
 
     @Test
@@ -69,6 +90,16 @@ class CustomerControllerTest {
     }
 
     @Test
+    void updateCustomer_notFound() {
+        webTestClient.put()
+            .uri(CustomerController.CUSTOMER_PATH + CustomerController.CUSTOMER_PATH_ID, 999)
+            .body(Mono.just(getCustomer()), CustomerDTO.class)
+            .header("Content-Type", "application/json")
+            .exchange()
+            .expectStatus().isNotFound();
+    }
+
+    @Test
     @Order(5)
     void patchCustomer() {
         webTestClient.patch()
@@ -81,6 +112,17 @@ class CustomerControllerTest {
     }
 
     @Test
+    @Order(5)
+    void patchCustomer_notFound() {
+        webTestClient.patch()
+            .uri(CustomerController.CUSTOMER_PATH + CustomerController.CUSTOMER_PATH_ID, 999)
+            .body(Mono.just(getCustomer()), CustomerDTO.class)
+            .header("Content-Type", "application/json")
+            .exchange()
+            .expectStatus().isNotFound();
+    }
+
+    @Test
     @Order(6)
     void deleteById() {
         webTestClient.delete()
@@ -90,10 +132,9 @@ class CustomerControllerTest {
     }
 
     @Test
-    @Order(7)
     void deleteById_notFound() {
         webTestClient.delete()
-            .uri(CustomerController.CUSTOMER_PATH + CustomerController.CUSTOMER_PATH_ID, 2)
+            .uri(CustomerController.CUSTOMER_PATH + CustomerController.CUSTOMER_PATH_ID, 999)
             .exchange()
             .expectStatus().isNotFound();
     }

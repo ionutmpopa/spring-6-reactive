@@ -25,18 +25,21 @@ public class GlobalErrorAttributes extends DefaultErrorAttributes {
         Map<String, Object> map = super.getErrorAttributes(
             request, options);
 
+        return switch (getErrorMessage(error)) {
+            case "Element not found" -> notFoundObjectMap(map);
+            case VALIDATION_FAILED -> badRequestObjectMap(map);
+            default -> internalErrorObjectMap(map);
+        };
+    }
+
+    private static String getErrorMessage(Throwable error) {
         String message;
         if (error.getMessage().contains(VALIDATION_FAILED)) {
             message = VALIDATION_FAILED;
         } else {
             message = error.getMessage();
         }
-
-        return switch (message) {
-            case "Element not found" -> notFoundObjectMap(map);
-            case VALIDATION_FAILED -> badRequestObjectMap(map);
-            default -> internalErrorObjectMap(map);
-        };
+        return message;
     }
 
     private static Map<String, Object> internalErrorObjectMap(Map<String, Object> map) {
